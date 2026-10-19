@@ -1,0 +1,15 @@
+# rootless deb 的 DEBIAN/control 示例
+# 用 Theos 的话，在 Makefile 里写 THEOS_PACKAGE_SCHEME = rootless，
+# 打出来的包会自动是 iphoneos-arm64，文件也会安装到 /var/jb 下，不用手写这个文件。
+
+Package: win.yuhh.yourtweak
+Name: Your Tweak
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: 一句话介绍
+Maintainer: Your Name <you@example.com>
+Author: Your Name <you@example.com>
+Section: Tweaks
+Depends: firmware (>= 15.0), mobilesubstrate
+SileoDepiction: https://repo.yuhh.win/depictions/native/win.yuhh.yourtweak.json
+Icon: https://repo.yuhh.win/assets/icons/win.yuhh.yourtweak.png

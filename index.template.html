@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{NAME}}</title>
+<meta name="description" content="{{DESCRIPTION}}">
+<link rel="icon" href="CydiaIcon.png">
+<style>
+  :root {
+    --bg: #f5f5f7;
+    --card: #ffffff;
+    --text: #1d1d1f;
+    --muted: #6e6e73;
+    --line: #e5e5ea;
+    --accent: #2f7cf6;
+    --accent-text: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #000000;
+      --card: #1c1c1e;
+      --text: #f5f5f7;
+      --muted: #98989d;
+      --line: #2c2c2e;
+      --accent: #4c94ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+      "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  main { max-width: 640px; margin: 0 auto; padding: 40px 16px 64px; }
+  header { text-align: center; margin-bottom: 28px; }
+  header img { width: 88px; height: 88px; border-radius: 20px; background: var(--line); }
+  h1 { font-size: 28px; margin: 16px 0 4px; }
+  header p { margin: 0; color: var(--muted); }
+  section { background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 12px; }
+  .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .buttons a {
+    display: block; text-align: center; padding: 12px; border-radius: 12px;
+    background: var(--bg); color: var(--text); text-decoration: none; font-weight: 600;
+  }
+  .buttons a.primary { grid-column: 1 / -1; background: var(--accent); color: var(--accent-text); }
+  .url {
+    display: flex; gap: 8px; align-items: center; margin-top: 14px;
+    border: 1px solid var(--line); border-radius: 12px; padding: 8px 8px 8px 12px;
+  }
+  .url code { flex: 1; overflow-x: auto; white-space: nowrap; font-size: 14px; }
+  .url button {
+    border: 0; border-radius: 8px; padding: 6px 12px; cursor: pointer;
+    background: var(--accent); color: var(--accent-text); font: inherit; font-size: 14px;
+  }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); align-items: center; }
+  li:first-child { border-top: 0; padding-top: 0; }
+  li:last-child { padding-bottom: 0; }
+  li img { width: 40px; height: 40px; border-radius: 9px; background: var(--line); flex: none; }
+  .info { flex: 1; min-width: 0; }
+  .info b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .info span { display: block; color: var(--muted); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .info .meta { font-size: 12px; opacity: .8; }
+  .empty { color: var(--muted); margin: 0; }
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="CydiaIcon.png" alt="" onerror="this.style.visibility='hidden'">
+    <h1>{{NAME}}</h1>
+    <p>{{DESCRIPTION}}</p>
+  </header>
+
+  <section>
+    <h2>添加到包管理器</h2>
+    <div class="buttons">
+      <a class="primary" href="sileo://source/{{URL}}">添加到 Sileo</a>
+      <a href="zbra://sources/add/{{URL}}">添加到 Zebra</a>
+      <a href="installer://add/repo={{URL}}">添加到 Installer</a>
+    </div>
+    <div class="url">
+      <code id="repo-url">{{URL}}</code>
+      <button id="copy" type="button">复制</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>软件包</h2>
+    <ul id="list"><li class="empty">加载中…</li></ul>
+  </section>
+
+  <footer>
+    <div>{{FOOTER}}</div>
+    <div>更新于 {{BUILD_DATE}}</div>
+  </footer>
+</main>
+
+<script>
+  const copyBtn = document.getElementById('copy');
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(document.getElementById('repo-url').textContent);
+      copyBtn.textContent = '已复制';
+    } catch (e) {
+      copyBtn.textContent = '请手动复制';
+    }
+    setTimeout(() => (copyBtn.textContent = '复制'), 1500);
+  });
+
+  function fmtSize(n) {
+    if (!n) return '';
+    return n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+  }
+
+  fetch('packages.json')
+    .then(r => r.json())
+    .then(items => {
+      const list = document.getElementById('list');
+      list.textContent = '';
+      if (!items.length) {
+        const li = document.createElement('li');
+        li.className = 'empty';
+        li.textContent = '暂时还没有软件包。';
+        list.appendChild(li);
+        return;
+      }
+      for (const p of items) {
+        const li = document.createElement('li');
+
+        const img = document.createElement('img');
+        img.alt = '';
+        img.src = p.icon || 'CydiaIcon.png';
+        img.onerror = () => (img.style.visibility = 'hidden');
+
+        const info = document.createElement('div');
+        info.className = 'info';
+        const name = document.createElement('b');
+        name.textContent = p.name;
+        const desc = document.createElement('span');
+        desc.textContent = p.description || p.id;
+        const meta = document.createElement('span');
+        meta.className = 'meta';
+        meta.textContent = [p.version, p.arch, fmtSize(p.size)].filter(Boolean).join(' · ');
+        info.append(name, desc, meta);
+
+        li.append(img, info);
+        list.appendChild(li);
+      }
+    })
+    .catch(() => {
+      document.getElementById('list').innerHTML = '<li class="empty">软件包列表加载失败。</li>';
+    });
+</script>
+</body>
+</html>
