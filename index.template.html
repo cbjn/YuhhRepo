@@ -47,7 +47,7 @@
     display: block; text-align: center; padding: 12px; border-radius: 12px;
     background: var(--bg); color: var(--text); text-decoration: none; font-weight: 600;
   }
-  .buttons a.primary { grid-column: 1 / -1; background: var(--accent); color: var(--accent-text); }
+  .buttons a.primary { background: var(--accent); color: var(--accent-text); }
   .url {
     display: flex; gap: 8px; align-items: center; margin-top: 14px;
     border: 1px solid var(--line); border-radius: 12px; padding: 8px 8px 8px 12px;
@@ -82,8 +82,7 @@
     <h2>添加到包管理器</h2>
     <div class="buttons">
       <a class="primary" href="sileo://source/{{URL}}">添加到 Sileo</a>
-      <a href="zbra://sources/add/{{URL}}">添加到 Zebra</a>
-      <a href="installer://add/repo={{URL}}">添加到 Installer</a>
+      <a class="primary" href="zbra://sources/add/{{URL}}">添加到 Zebra</a>
     </div>
     <div class="url">
       <code id="repo-url">{{URL}}</code>
